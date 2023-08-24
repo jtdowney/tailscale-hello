@@ -1,0 +1,40 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hello Tailscale</title>
+  <link rel="stylesheet" href="/app.css" type="text/css" />
+</head>
+
+<body class="bg-green-300 flex justify-center items-center p-2">
+  <div class="bg-white rounded-lg p-6 shadow-md w-full max-w-md">
+    {% match information %}
+    {% when Some with ((whois, status)) %}
+    <h2 class="text-lg font-medium text-slate-800 pb-3">Hello {{whois.user_profile.display_name}}!</h2>
+    <p class="pb-5">If you see this, then Tailscale is correctly set up on your device!</p>
+    <ul class="space-y-2">
+      <li class="flex">
+        <span class="font-mono text-sm text-gray-600 mr-2 w-2/5">Username:</span>
+        <span class="font-mono text-sm text-black">{{whois.user_profile.login_name}}</span>
+      </li>
+      <li class="flex">
+        <span class="font-mono text-sm text-gray-600 mr-2 w-2/5">Display Name:</span>
+        <span class="font-mono text-sm text-black">{{whois.user_profile.display_name}}</span>
+      </li>
+      <li class="flex">
+        <span class="font-mono text-sm text-gray-600 mr-2 w-2/5">Tailnet Name:</span>
+        <span class="font-mono text-sm text-black">{{status.current_tailnet.as_ref().unwrap().name}}</span>
+      </li>
+      <li class="flex">
+        <span class="font-mono text-sm text-gray-600 mr-2 w-2/5">Tailnet Domain:</span>
+        <span class="font-mono text-sm text-black">{{status.current_tailnet.as_ref().unwrap().magic_dns_suffix}}</span>
+      </li>
+    </ul>
+    {% when None %}
+    <h2 class="text-lg font-medium text-red-700">Unable to locate Tailscale information</h2>
+    {% endmatch %}
+  </div>
+</body>
+
+</html>
