@@ -1,4 +1,4 @@
-ARG RUST_VERSION=1.71
+ARG RUST_VERSION=1.76
 ARG DEBIAN_VERSION=bookworm-slim
 
 FROM rust:${RUST_VERSION} as rust-chef
