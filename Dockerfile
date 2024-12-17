@@ -1,16 +1,16 @@
 ARG RUST_VERSION=1.81
 ARG DEBIAN_VERSION=bookworm-slim
 
-FROM rust:${RUST_VERSION} as rust-chef
+FROM rust:${RUST_VERSION} AS rust-chef
 RUN cargo install cargo-chef
 
-FROM rust-chef as planner
+FROM rust-chef AS planner
 
 WORKDIR /usr/src/app
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
-FROM rust-chef as builder
+FROM rust-chef AS builder
 
 WORKDIR /usr/src/app
 COPY --from=planner /usr/src/app/recipe.json recipe.json
@@ -18,7 +18,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release
 
-FROM debian:${DEBIAN_VERSION} as runtime
+FROM debian:${DEBIAN_VERSION} AS runtime
 
 RUN apt-get update -y && \
     apt-get install --no-install-recommends -y iproute2 iptables ca-certificates && \
