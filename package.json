@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "publish": false,
   "scripts": {
-    "build": "tailwindcss build -m -i css/app.css -o static/app.css",
-    "watch": "tailwindcss build -w -i css/app.css -o static/app.css"
+    "build": "tailwindcss -m -i css/app.css -o static/app.css",
+    "watch": "tailwindcss -w -i css/app.css -o static/app.css"
   },
   "devDependencies": {
-    "tailwindcss": "^3.0.24"
+    "@tailwindcss/cli": "^4.0.12",
+    "tailwindcss": "^4.0.12"
   }
 }
