@@ -14,7 +14,7 @@ use crate::server::create_router;
 
 fn setup_tracing() {
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
+        unsafe { env::set_var("RUST_LOG", "info") };
     }
 
     tracing_subscriber::fmt::fmt()
