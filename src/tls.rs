@@ -27,14 +27,11 @@ impl<T: LocalApiClient + Clone> fmt::Debug for TailscaleCertResolver<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("TailscaleCertResolver")
             .field("domain", &self.domain)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
-pub fn create_config<T, S>(
-    localapi: Arc<LocalApi<T>>,
-    domain: S,
-) -> anyhow::Result<Arc<rustls::ServerConfig>>
+pub fn create_config<T, S>(localapi: Arc<LocalApi<T>>, domain: S) -> Arc<rustls::ServerConfig>
 where
     T: LocalApiClient + Send + Sync + 'static,
     S: Into<String>,
@@ -50,7 +47,7 @@ where
         .with_no_client_auth()
         .with_cert_resolver(cert_resolver);
     config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
-    Ok(Arc::new(config))
+    Arc::new(config)
 }
 
 #[instrument(skip(localapi))]
@@ -68,14 +65,14 @@ where
         rt.block_on(localapi.certificate_pair(&domain))
     })
     .join()
-    .map_err(|e| anyhow!("unable to fetch certificate: {:?}", e))??;
+    .map_err(|e| anyhow!("unable to fetch certificate: {e:?}"))??;
 
     let certs: Vec<pki_types::CertificateDer> = certs
         .into_iter()
         .map(|Certificate(data)| pki_types::CertificateDer::from(data))
         .collect();
-    let key = pki_types::PrivateKeyDer::try_from(key)
-        .map_err(|e| anyhow!("Invalid private key: {}", e))?;
+    let key =
+        pki_types::PrivateKeyDer::try_from(key).map_err(|e| anyhow!("Invalid private key: {e}"))?;
     let key = rustls::crypto::aws_lc_rs::sign::any_supported_type(&key)?;
     Ok(CertifiedKey::new(certs, key))
 }

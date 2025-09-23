@@ -49,7 +49,7 @@ async fn main() -> anyhow::Result<()> {
         .to_owned();
     info!(domain, "using domain for certificates");
 
-    let tls_config = tls::create_config(localapi.clone(), domain.clone())?;
+    let tls_config = tls::create_config(localapi.clone(), domain.clone());
     let servers = status
         .tailscale_ips
         .iter()
@@ -64,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
             let redirect = move || async move {
                 let mut redirect = format!("https://{domain}");
                 if tls_port != 443 {
-                    redirect = format!("{redirect}:{}", tls_port);
+                    redirect = format!("{redirect}:{tls_port}");
                 }
 
                 Ok::<_, Infallible>(Redirect::permanent(&redirect))
