@@ -1,13 +1,14 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use askama::Template;
+use askama_web::WebTemplate;
 use axum::{
+    Router,
     extract::{ConnectInfo, State},
     response::{IntoResponse, Response},
     routing::get,
-    Router,
 };
-use hyper::{header::CONTENT_TYPE, StatusCode, Uri};
+use hyper::{StatusCode, Uri, header::CONTENT_TYPE};
 use rust_embed::RustEmbed;
 use tailscale_localapi::{LocalApiClient, Status, Whois};
 
@@ -15,7 +16,7 @@ use tailscale_localapi::{LocalApiClient, Status, Whois};
 #[folder = "static/"]
 struct Asset;
 
-#[derive(Template)]
+#[derive(Template, WebTemplate)]
 #[template(path = "index.html")]
 struct IndexTemplate {
     information: Option<(Whois, Status)>,

@@ -1,11 +1,12 @@
 use std::{
+    fmt,
     sync::{Arc, RwLock},
     thread,
     time::{Duration, Instant},
 };
 
 use anyhow::anyhow;
-use rustls::{server::ResolvesServerCert, sign::CertifiedKey};
+use rustls::{pki_types, server::ResolvesServerCert, sign::CertifiedKey};
 use tailscale_localapi::{Certificate, LocalApi, LocalApiClient, PrivateKey};
 use tracing::{debug, error, instrument, trace};
 
@@ -20,6 +21,14 @@ struct TailscaleCertResolver<T: LocalApiClient + Clone> {
     domain: String,
     localapi: Arc<LocalApi<T>>,
     cached_certificate: RwLock<Option<CachedCertificate>>,
+}
+
+impl<T: LocalApiClient + Clone> fmt::Debug for TailscaleCertResolver<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TailscaleCertResolver")
+            .field("domain", &self.domain)
+            .finish()
+    }
 }
 
 pub fn create_config<T, S>(
@@ -38,7 +47,6 @@ where
     });
 
     let mut config = rustls::ServerConfig::builder()
-        .with_safe_defaults()
         .with_no_client_auth()
         .with_cert_resolver(cert_resolver);
     config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
@@ -62,12 +70,13 @@ where
     .join()
     .map_err(|e| anyhow!("unable to fetch certificate: {:?}", e))??;
 
-    let certs = certs
+    let certs: Vec<pki_types::CertificateDer> = certs
         .into_iter()
-        .map(|Certificate(data)| rustls::Certificate(data))
+        .map(|Certificate(data)| pki_types::CertificateDer::from(data))
         .collect();
-    let key = rustls::PrivateKey(key);
-    let key = rustls::sign::any_supported_type(&key)?;
+    let key = pki_types::PrivateKeyDer::try_from(key)
+        .map_err(|e| anyhow!("Invalid private key: {}", e))?;
+    let key = rustls::crypto::aws_lc_rs::sign::any_supported_type(&key)?;
     Ok(CertifiedKey::new(certs, key))
 }
 
@@ -85,11 +94,11 @@ where
 
         {
             let cached_certificate = self.cached_certificate.read().unwrap();
-            if let Some(cached_certificate) = cached_certificate.as_ref() {
-                if cached_certificate.last_update.elapsed() < CERTIFICATE_LIFETIME {
-                    trace!("cache hit");
-                    return Some(Arc::new(cached_certificate.cert_and_key.clone()));
-                }
+            if let Some(cached_certificate) = cached_certificate.as_ref()
+                && cached_certificate.last_update.elapsed() < CERTIFICATE_LIFETIME
+            {
+                trace!("cache hit");
+                return Some(Arc::new(cached_certificate.cert_and_key.clone()));
             }
         }
 

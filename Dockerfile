@@ -1,5 +1,5 @@
-ARG RUST_VERSION=1.85
-ARG DEBIAN_VERSION=bookworm-slim
+ARG RUST_VERSION=1.90
+ARG DEBIAN_VERSION=trixie-slim
 
 FROM rust:${RUST_VERSION} AS rust-chef
 RUN cargo install cargo-chef
@@ -20,8 +20,7 @@ RUN cargo build --release
 
 FROM debian:${DEBIAN_VERSION} AS runtime
 
-RUN apt-get update -y && \
-    apt-get install --no-install-recommends -y iproute2 iptables ca-certificates && \
+RUN apt-get --update install --no-install-recommends -y iproute2 iptables ca-certificates && \
     apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 COPY --from=docker.io/tailscale/tailscale:stable /usr/local/bin/tailscaled /usr/bin/tailscaled
