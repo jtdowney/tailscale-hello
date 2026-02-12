@@ -6,16 +6,16 @@ edition = "2024"
 [dependencies]
 anyhow = "1"
 askama = "0.14.0"
-askama_web = { version = "0.14.6", features = ["axum-0.8"] }
-axum = { version = "0.8.4", features = ["tracing", "http2", "macros"] }
-axum-server = { version = "0.7.2", features = ["tls-rustls"] }
+askama_web = { version = "0.14.7", features = ["axum-0.8"] }
+axum = { version = "0.8.8", features = ["tracing", "http2", "macros"] }
+axum-server = { version = "0.7.3", features = ["tls-rustls"] }
 futures = "0.3.31"
 hyper = { version = "1", features = ["full"] }
 hyper-rustls = { version = "0.27.7", features = ["http2"] }
 mime_guess = "2"
 rust-embed = { version = "8", features = ["axum"] }
-rustls = "0.23.32"
+rustls = "0.23.36"
 tailscale-localapi = "0.4.2"
 tokio = { version = "1", features = ["full"] }
-tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
